@@ -155,24 +155,25 @@ async def on_startup(_):
     # seconds_difference = time_difference.total_seconds()
     #
     # print('Разница в секундах:', seconds_difference)
+    await set_default_commands(dp)
     current_date = datetime.now().strftime("%d.%m.%Y")
     events = list(filter(lambda x: x.date_event == current_date, await CRUDEvent.get_all()))
-    get_time = await min_max_time(event=events)
+    if events:
+        get_time = await min_max_time(event=events)
 
-    await set_default_commands(dp)
-    scheduler = AsyncIOScheduler(timezone='Europe/Moscow')
+        scheduler = AsyncIOScheduler(timezone='Europe/Moscow')
 
-    scheduler.add_job(get_def_scheduler, trigger='cron', hour='9', minute='00', kwargs={'bot': bot})
-    #scheduler.add_job(get_def_scheduler, trigger='cron', hour='10-21', minute='*/1', second='30', kwargs={'bot': bot})
+        scheduler.add_job(get_def_scheduler, trigger='cron', hour='9', minute='00', kwargs={'bot': bot})
+        #scheduler.add_job(get_def_scheduler, trigger='cron', hour='10-21', minute='*/1', second='30', kwargs={'bot': bot})
 
-    first_event_time = get_time[0][:-3]
-    last_event_time = get_time[1][:-3]
+        first_event_time = get_time[0][:-3]
+        last_event_time = get_time[1][:-3]
 
-    scheduler.add_job(eventsOfDay, trigger='cron',
-                      hour=f'{int(first_event_time)}-{int(last_event_time)}',
-                      minute='*/30',
-                      kwargs={'bot': bot})
-    scheduler.start()
+        scheduler.add_job(eventsOfDay, trigger='cron',
+                          hour=f'{int(first_event_time)}-{int(last_event_time)}',
+                          minute='*/30',
+                          kwargs={'bot': bot})
+        scheduler.start()
 
     # #scheduler.add_job(event_verification, trigger='date', run_date=datetime.now() + timedelta(seconds=10))
     # for i in events:
