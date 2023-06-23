@@ -169,7 +169,7 @@ async def on_startup(_):
 
         scheduler.add_job(eventsOfDay, trigger='cron',
                           hour=f'{int(first_event_time)}-{int(last_event_time) + 1}',
-                          minute='30m',
+                          minute='*/30',
                           kwargs={'bot': bot})
         scheduler.start()
 
