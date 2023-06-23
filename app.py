@@ -13,7 +13,6 @@ from schemas import EventSchema
 from utils.set_bot_commands import set_default_commands
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-
 async def event_verification():  # сдлеать раз в сутки например в 6 утра, что бы проверяло есть ли новые мероприятия
     res = requests.get(
         "https://www.ticketpro.by/"
@@ -161,7 +160,7 @@ async def on_startup(_):
     if events:
         get_time = await min_max_time(event=events)
 
-        scheduler = AsyncIOScheduler(timezone='Europe/Moscow')
+        scheduler = AsyncIOScheduler()
 
         scheduler.add_job(get_def_scheduler, trigger='cron', hour='09', minute='00', kwargs={'bot': bot})
         #scheduler.add_job(get_def_scheduler, trigger='cron', hour='10-21', minute='*/1', second='30', kwargs={'bot': bot})
