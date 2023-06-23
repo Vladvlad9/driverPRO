@@ -1,9 +1,7 @@
 import asyncio
-from datetime import datetime, timedelta
-from aiogram import types, Bot
-import aioschedule as aioschedule
+from datetime import datetime
+from aiogram import Bot
 import requests
-from aiogram.utils.exceptions import ChatNotFound
 from bs4 import BeautifulSoup
 
 from crud import CRUDEvent
@@ -12,6 +10,7 @@ from loader import bot
 from schemas import EventSchema
 from utils.set_bot_commands import set_default_commands
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
 
 async def event_verification():  # сдлеать раз в сутки например в 6 утра, что бы проверяло есть ли новые мероприятия
     res = requests.get(
