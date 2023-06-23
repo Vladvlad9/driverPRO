@@ -10,6 +10,7 @@ from loader import bot
 from schemas import EventSchema
 from utils.set_bot_commands import set_default_commands
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 
 async def event_verification():  # сдлеать раз в сутки например в 6 утра, что бы проверяло есть ли новые мероприятия
@@ -168,7 +169,7 @@ async def on_startup(_):
         last_event_time = get_time[1][:-3]
 
         scheduler.add_job(func=eventsOfDay,
-                          trigger='cron',
+                          trigger=CronTrigger(),
                           hour=f'{int(first_event_time)}-{int(last_event_time) + 1}',
                           minute='*/30',
                           kwargs={'bot': bot})
