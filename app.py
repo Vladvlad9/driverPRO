@@ -163,7 +163,7 @@ async def on_startup(_):
         scheduler = AsyncIOScheduler()
 
         scheduler.add_job(get_def_scheduler,
-                          trigger=CronTrigger(hour='17', minute='13'),
+                          trigger=CronTrigger(hour=9, minute=0),
                           kwargs={'bot': bot})
         #scheduler.add_job(get_def_scheduler, trigger='cron', hour='10-21', minute='*/1', second='30', kwargs={'bot': bot})
 
