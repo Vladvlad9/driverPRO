@@ -11,8 +11,6 @@ from schemas import EventSchema
 from utils.set_bot_commands import set_default_commands
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from backports.zoneinfo import ZoneInfo
-
 
 async def event_verification():  # сдлеать раз в сутки например в 6 утра, что бы проверяло есть ли новые мероприятия
     res = requests.get(

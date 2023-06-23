@@ -8,3 +8,4 @@ aiotelegraph==0.1.0
 aioschedule~=0.5.2
 requests~=2.31.0
 beautifulsoup4~=4.12.2
+backports.zoneinfo;python_version<"3.9"
