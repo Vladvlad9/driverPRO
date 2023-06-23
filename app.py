@@ -161,7 +161,7 @@ async def on_startup(_):
 
         scheduler = AsyncIOScheduler()
 
-        scheduler.add_job(get_def_scheduler, trigger='cron', hour='09', minute='00', kwargs={'bot': bot})
+        #scheduler.add_job(get_def_scheduler, trigger='cron', hour='09', minute='00', kwargs={'bot': bot})
         #scheduler.add_job(get_def_scheduler, trigger='cron', hour='10-21', minute='*/1', second='30', kwargs={'bot': bot})
 
         first_event_time = get_time[0][:-3]
@@ -169,7 +169,7 @@ async def on_startup(_):
 
         scheduler.add_job(eventsOfDay, trigger='cron',
                           hour=f'{int(first_event_time)}-{int(last_event_time) + 1}',
-                          minute='*/30',
+                          minute='30m',
                           kwargs={'bot': bot})
         scheduler.start()
 
