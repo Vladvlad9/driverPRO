@@ -1,9 +1,11 @@
 import asyncio
+import math
 from datetime import datetime
 from aiogram import Bot
 import requests
 from bs4 import BeautifulSoup
 
+from config import CONFIG
 from crud import CRUDEvent
 from crud.userCRUD import CRUDUser
 from loader import bot
@@ -111,16 +113,10 @@ async def get_def_scheduler(bot: Bot):
                                           disable_web_page_preview=True)
                          )
 
-        await asyncio.gather(*tasks, return_exceptions=True)  # Отправка всем админам сразу
+        await asyncio.gather(*tasks, return_exceptions=True)  # Отправка всем сразу
     except Exception as e:
         await bot.send_message(text=f"Ошибка при отправке количестве мероприятий\n {e}",
                                chat_id=381252111)
-
-
-    # await bot.send_message(chat_id=381252111, text=f"Сегодня {current_date} в Минске пройдет "
-    #                                                f"{len(current_date_event)} мероприятий\n\n"
-    #                                                f"{text_event}",
-    #                        disable_web_page_preview=True)
 
 
 async def min_max_time(event: list):
@@ -140,6 +136,100 @@ async def min_max_time(event: list):
     return data_list_time
 
 
+async def get_temperature_forecast():
+    response = requests.get(
+        f"https://api.openweathermap.org/data/2.5/weather?q=minsk&appid={CONFIG.APIWEATHER}&units=metric"
+    )
+    data = response.json()
+    cur_temp = data["main"]["temp"]
+    return cur_temp
+
+
+async def weather(bot: Bot):
+    users = await CRUDUser.get_all()
+    tasks = []
+
+    response = requests.get(
+        f"https://api.openweathermap.org/data/2.5/weather?q=minsk&appid={CONFIG.APIWEATHER}&units=metric"
+    )
+    data = response.json()
+    cur_temp = data["main"]["temp"]
+    humidity = data["main"]["humidity"]
+    pressure = data["main"]["pressure"]
+    wind = data["wind"]["speed"]
+
+    sunrise_timestamp = datetime.fromtimestamp(data["sys"]["sunrise"])
+    sunset_timestamp = datetime.fromtimestamp(data["sys"]["sunset"])
+
+    # продолжительность дня
+    length_of_the_day = datetime.fromtimestamp(
+        data["sys"]["sunset"]) - datetime.fromtimestamp(data["sys"]["sunrise"])
+
+    code_to_smile = {
+        "Clear": "Ясно \U00002600",
+        "Clouds": "Облачно \U00002601",
+        "Rain": "Дождь \U00002614",
+        "Drizzle": "Дождь \U00002614",
+        "Thunderstorm": "Гроза \U000026A1",
+        "Snow": "Снег \U0001F328",
+        "Mist": "Туман \U0001F32B"
+    }
+
+    # получаем значение погоды
+    weather_description = data["weather"][0]["main"]
+
+    if weather_description in code_to_smile:
+        wd = code_to_smile[weather_description]
+    else:
+        # если эмодзи для погоды нет, выводим другое сообщение
+        wd = "Посмотри в окно, я не понимаю, что там за погода..."
+
+    text = f"{datetime.now().strftime('%Y-%m-%d %H:%M')}\n"\
+           f"Погода в городе: Минск\n"\
+           f"Температура: {cur_temp}°C <i>{wd}</i>\n"\
+           f"Влажность: {humidity}%\n"\
+           f"Давление: {math.ceil(pressure / 1.333)} мм.рт.ст\n"\
+           f"Ветер: {wind} м/с \n"\
+           f"Восход солнца: {sunrise_timestamp}\n"\
+           f"Закат солнца: {sunset_timestamp}\n"\
+           f"Продолжительность дня: {length_of_the_day}\n"\
+           f"Хорошего дня!"
+    CONFIG.CURRENT_TEMPERATURE = cur_temp
+    try:
+        for user in users:
+            tasks.append(bot.send_message(chat_id=user.user_id,
+                                          text=text,
+                                          parse_mode="HTML",
+                                          disable_web_page_preview=True)
+                         )
+
+        await asyncio.gather(*tasks, return_exceptions=True)  # Отправка всем сразу
+    except Exception as e:
+        await bot.send_message(text=f"Ошибка при отправке количестве мероприятий\n {e}",
+                               chat_id=381252111)
+
+
+async def temperature_change(bot: Bot):
+    users = await CRUDUser.get_all()
+    tasks = []
+
+    text = f"{datetime.now().strftime('%Y-%m-%d %H:%M')}\n" \
+           f"Погода немного ухудшилась\n" \
+           f"{CONFIG.CURRENT_TEMPERATURE}°C"
+
+    try:
+        for user in users:
+            tasks.append(bot.send_message(chat_id=user.user_id,
+                                          text=text,
+                                          disable_web_page_preview=True)
+                         )
+
+        await asyncio.gather(*tasks, return_exceptions=True)  # Отправка всем сразу
+    except Exception as e:
+        await bot.send_message(text=f"Ошибка при отправке конкретной температуре (temperature_change)\n {e}",
+                               chat_id=381252111)
+
+
 async def on_startup(_):
     # time_format = '%H:%M'
     #
@@ -157,35 +247,41 @@ async def on_startup(_):
     await set_default_commands(dp)
     current_date = datetime.now().strftime("%d.%m.%Y")
     events = list(filter(lambda x: x.date_event == current_date, await CRUDEvent.get_all()))
+
+    scheduler = AsyncIOScheduler(timezone='Europe/Moscow')
+
+    scheduler.add_job(event_verification,
+                      trigger=CronTrigger(hour=5, minute=30))  # Функция которая будет проверять новые мероприятия
+
+    get_temperature = await get_temperature_forecast()
+
+    if get_temperature < CONFIG.CURRENT_TEMPERATURE:
+        CONFIG.CURRENT_TEMPERATURE = get_temperature
+
+        scheduler.add_job(temperature_change,
+                          trigger=CronTrigger(hour="8-22", minute="*/55"),
+                          kwargs={'bot': bot})  # Функция которая будет проверять сколько мероприятий проходит сегодня
+
     if events:
         get_time = await min_max_time(event=events)
 
-        scheduler = AsyncIOScheduler()
-
         scheduler.add_job(get_def_scheduler,
-                          trigger=CronTrigger(hour=9, minute=0),
-                          kwargs={'bot': bot})
-        #scheduler.add_job(get_def_scheduler, trigger='cron', hour='10-21', minute='*/1', second='30', kwargs={'bot': bot})
+                          trigger=CronTrigger(hour=7, minute=0),
+                          kwargs={'bot': bot})  # Функция которая будет проверять сколько мероприятий проходит сегодня
 
-        first_event_time = get_time[0][:-3]
-        last_event_time = get_time[1][:-3]
+        scheduler.add_job(weather,
+                          trigger=CronTrigger(hour=7, minute=1),
+                          kwargs={'bot': bot})  # Функция отправки погоды
 
-        scheduler.add_job(func=eventsOfDay,
-                          trigger=CronTrigger(
-                              hour=f'{int(first_event_time)}-{int(last_event_time) + 1}',
-                              minute=0),
-                          kwargs={'bot': bot})
+        # first_event_time = get_time[0][:-3]
+        # last_event_time = get_time[1][:-3]
+        #
+        # scheduler.add_job(func=eventsOfDay,
+        #                   trigger=CronTrigger(
+        #                       hour=f'{int(first_event_time)}-{int(last_event_time) + 1}',
+        #                       minute=0),
+        #                   kwargs={'bot': bot})
         scheduler.start()
-
-    # #scheduler.add_job(event_verification, trigger='date', run_date=datetime.now() + timedelta(seconds=10))
-    # for i in events:
-    #     scheduler.add_job(test,
-    #                       trigger='cron',
-    #                       hour=int(i.time_event[:-3]),
-    #                       minute=int(i.time_event[3:]),
-    #                       start_date=datetime.now(),
-    #                       kwargs={'a': i.name}
-    #                       )
 
 
 if __name__ == '__main__':

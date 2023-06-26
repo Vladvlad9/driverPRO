@@ -4,6 +4,6 @@
     "ADMINS": [381252111]
   },
   "DATABASE": "postgres:postgres@localhost:5432/driverPRO",
-  "APIWEATHER": "ac1357783e01281424557131ca2e7b95"
-
+  "APIWEATHER": "ac1357783e01281424557131ca2e7b95",
+  "CURRENT_TEMPERATURE": 23.87
 }
