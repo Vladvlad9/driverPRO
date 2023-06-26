@@ -77,7 +77,7 @@ async def eventsOfDay(bot: Bot):
         try:
             for user in users:
                 tasks.append(bot.send_message(chat_id=user.user_id,
-                                              text="text_event",
+                                              text=text_event,
                                               disable_web_page_preview=True)
                              )
 
@@ -119,21 +119,15 @@ async def get_def_scheduler(bot: Bot):
                                chat_id=381252111)
 
 
-async def min_max_time(event: list):
+async def sorted_time(event: list):
     time_list = []
 
     for i in event:
         time_list.append(i.time_event)
 
-    # Преобразование строковых значений времени в объекты datetime
-    time_objects = [datetime.strptime(time_str, '%H:%M') for time_str in time_list]
+    sorted_time_list = sorted(time_list, key=lambda x: datetime.strptime(x, '%H:%M'))
 
-    # Поиск минимального и максимального времени
-    min_time = min(time_objects)
-    max_time = max(time_objects)
-
-    data_list_time = [min_time.strftime('%H:%M'), max_time.strftime('%H:%M')]
-    return data_list_time
+    return sorted_time_list
 
 
 async def get_temperature_forecast():
@@ -231,19 +225,6 @@ async def temperature_change(bot: Bot):
 
 
 async def on_startup(_):
-    # time_format = '%H:%M'
-    #
-    # start_time = datetime.strptime('19:00', time_format)
-    # end_time = datetime.strptime('11:00', time_format)
-    #
-    # # Если начальное время находится после конечного времени, добавьте один день к конечному времени
-    # if start_time < end_time:
-    #     end_time = end_time.replace(day=end_time.day + 1)
-    #
-    # time_difference = start_time - end_time
-    # seconds_difference = time_difference.total_seconds()
-    #
-    # print('Разница в секундах:', seconds_difference)
     await set_default_commands(dp)
     current_date = datetime.now().strftime("%d.%m.%Y")
     events = list(filter(lambda x: x.date_event == current_date, await CRUDEvent.get_all()))
@@ -263,7 +244,7 @@ async def on_startup(_):
                           kwargs={'bot': bot})  # Функция которая будет проверять сколько мероприятий проходит сегодня
 
     if events:
-        get_time = await min_max_time(event=events)
+        get_time = await sorted_time(event=events)
 
         scheduler.add_job(get_def_scheduler,
                           trigger=CronTrigger(hour=7, minute=0),
@@ -273,14 +254,14 @@ async def on_startup(_):
                           trigger=CronTrigger(hour=7, minute=1),
                           kwargs={'bot': bot})  # Функция отправки погоды
 
-        # first_event_time = get_time[0][:-3]
-        # last_event_time = get_time[1][:-3]
-        #
-        # scheduler.add_job(func=eventsOfDay,
-        #                   trigger=CronTrigger(
-        #                       hour=f'{int(first_event_time)}-{int(last_event_time) + 1}',
-        #                       minute=0),
-        #                   kwargs={'bot': bot})
+        for h in get_time:
+            get_hour = int(h[:-3])
+            get_minute = int(h[3:])
+
+            scheduler.add_job(func=eventsOfDay,
+                              trigger=CronTrigger(hour=get_hour, minute=get_minute),
+                              kwargs={'bot': bot})
+
         scheduler.start()
 
 
