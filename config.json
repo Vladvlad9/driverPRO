@@ -1,6 +1,6 @@
 {
   "BOT": {
-    "TOKEN": "5647871601:AAHPJIAPkOMyhHRJ66tglK_Zmob9NAN0DQ4",
+    "TOKEN": "5403620291:AAFrLZ_rbWzEDpU8Qja-Qgt6qzo2vSrmuAY",
     "ADMINS": [381252111]
   },
   "DATABASE": "postgres:postgres@localhost:5432/driverPRO",
