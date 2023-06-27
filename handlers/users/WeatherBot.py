@@ -144,3 +144,30 @@ class WeatherBot:
         else:
             CONFIG.CURRENT_TEMPERATURE = await self.get_temperature_forecast()
 
+    async def weather_description(self):
+        text_description = ""
+        users = await CRUDUser.get_all()
+
+        get_weather_description = self.format_weather_description(await self.get_weather_description())
+        if get_weather_description == "Rain" or get_weather_description == "Drizzle":
+            text_description = "Скоро будет <i>Дождь</i>"
+        elif get_weather_description == "Clouds":
+            text_description = "Скоро будет <i>Облочно</i>"
+        elif get_weather_description == "Thunderstorm":
+            text_description = "Скоро будет <i>Гроза</i>"
+
+        tasks = []
+        try:
+            for user in users:
+                tasks.append(bot.send_message(chat_id=user.user_id,
+                                              text=text_description,
+                                              parse_mode="HTML",
+                                              disable_web_page_preview=True)
+                             )
+
+            await asyncio.gather(*tasks, return_exceptions=True)  # Отправка всем сразу
+            CONFIG.CURRENT_TEMPERATURE = await self.get_temperature_forecast()
+        except Exception as e:
+            await bot.send_message(text=f"Ошибка при отправке (weather_description)\n {e}",
+                                   chat_id=381252111)
+
