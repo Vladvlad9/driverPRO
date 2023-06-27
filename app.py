@@ -135,7 +135,7 @@ async def get_temperature_forecast():
         f"https://api.openweathermap.org/data/2.5/weather?q=minsk&appid={CONFIG.APIWEATHER}&units=metric"
     )
     data = response.json()
-    cur_temp = data["main"]["temp"]
+    cur_temp = round(data["main"]["temp"])
     return cur_temp
 
 
@@ -224,12 +224,17 @@ async def temperature_change(bot: Bot):
                                chat_id=381252111)
 
 
+async def get_timezone():
+    import datetime
+    get_timeZone = datetime.timezone.utc
+    return get_timeZone
+
+
 async def on_startup(_):
     await set_default_commands(dp)
     current_date = datetime.now().strftime("%d.%m.%Y")
     events = list(filter(lambda x: x.date_event == current_date, await CRUDEvent.get_all()))
-
-    scheduler = AsyncIOScheduler(timezone='Europe/Moscow')
+    scheduler = AsyncIOScheduler(timezone=await get_timezone())
 
     scheduler.add_job(event_verification,
                       trigger=CronTrigger(hour=5, minute=30))  # Функция которая будет проверять новые мероприятия
@@ -237,11 +242,12 @@ async def on_startup(_):
     get_temperature = await get_temperature_forecast()
 
     if get_temperature < CONFIG.CURRENT_TEMPERATURE:
-        CONFIG.CURRENT_TEMPERATURE = get_temperature
-
         scheduler.add_job(temperature_change,
                           trigger=CronTrigger(hour="8-22", minute="*/55"),
                           kwargs={'bot': bot})  # Функция которая будет проверять сколько мероприятий проходит сегодня
+        CONFIG.CURRENT_TEMPERATURE = get_temperature
+    else:
+        CONFIG.CURRENT_TEMPERATURE = get_temperature
 
     if events:
         get_time = await sorted_time(event=events)
