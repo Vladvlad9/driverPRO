@@ -245,7 +245,7 @@ async def on_startup(_):
 
     # scheduler Погоды
     scheduler.add_job(Weather.send_temperature_change_message, trigger=CronTrigger(hour='8-22', minute=0))
-    scheduler.add_job(Weather.weather_description, trigger=CronTrigger(hour='8-22', minute=0))
+    scheduler.add_job(Weather.weather_description, trigger=CronTrigger(hour='8-22', minute=10))
     scheduler.add_job(Weather.send_weather_message, trigger=CronTrigger(hour=7, minute=1))
 
     # if await Weather.get_temperature_forecast() < CONFIG.CURRENT_TEMPERATURE:
@@ -266,7 +266,7 @@ async def on_startup(_):
             scheduler.add_job(func=eventsOfDay, trigger=CronTrigger(hour=get_hour, minute=get_minute),
                               kwargs={'bot': bot})
 
-        scheduler.start()
+    scheduler.start()
 
 
 if __name__ == '__main__':
