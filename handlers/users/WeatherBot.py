@@ -121,10 +121,10 @@ class WeatherBot:
 
     async def send_temperature_change_message(self):
         users = await CRUDUser.get_all()
-        cur_temp = self.current_temperature
+        cur_temp = CONFIG.CURRENT_TEMPERATURE
 
-        if await self.get_temperature_forecast() < cur_temp:
-            text = f"{datetime.now().strftime('%Y-%m-%d %H:%M')}\n" \
+        if cur_temp < await self.get_temperature_forecast():
+            text = f"{datetime.now(pytz.timezone('Europe/Minsk')).strftime('%Y-%m-%d %H:%M')}\n" \
                    f"Погода немного ухудшилась\n" \
                    f"{round(cur_temp)}°C"
 

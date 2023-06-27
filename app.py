@@ -246,7 +246,7 @@ async def on_startup(_):
     scheduler.add_job(event_verification, trigger=CronTrigger(hour=5, minute=30))
 
     # scheduler Погоды
-    scheduler.add_job(Weather.send_temperature_change_message, trigger=CronTrigger(hour='8-22', minute=23))
+    scheduler.add_job(Weather.send_temperature_change_message, trigger=CronTrigger(hour='8-22', minute=47))
     scheduler.add_job(Weather.weather_description, trigger=CronTrigger(hour='8-22', minute=10))
     scheduler.add_job(Weather.send_weather_message, trigger=CronTrigger(hour=15, minute=23))
 
