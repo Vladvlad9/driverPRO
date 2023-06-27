@@ -134,6 +134,7 @@ class WeatherBot:
                    f"{round(cur_temp)}°C"
 
             tasks = []
+            CONFIG.CURRENT_TEMPERATURE = await self.get_temperature_forecast()
             try:
                 for user in users:
                     tasks.append(bot.send_message(chat_id=user.user_id,
@@ -141,8 +142,8 @@ class WeatherBot:
                                                   disable_web_page_preview=True)
                                  )
 
-                await asyncio.gather(*tasks, return_exceptions=True)  # Отправка всем сразу
-                CONFIG.CURRENT_TEMPERATURE = await self.get_temperature_forecast()
+                await asyncio.gather(*tasks, return_exceptions=True)
+
             except Exception as e:
                 await bot.send_message(text=f"Ошибка при отправке конкретной температуре (temperature_change)\n {e}",
                                        chat_id=381252111)

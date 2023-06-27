@@ -245,10 +245,14 @@ async def on_startup(_):
     # Функция которая будет проверять новые мероприятия
     scheduler.add_job(event_verification, trigger=CronTrigger(hour=5, minute=30))
 
-    # scheduler Погоды
-    scheduler.add_job(Weather.send_temperature_change_message, trigger=CronTrigger(hour='8-22', minute=5))
+    # проверка на то что не ли ухудшилась погода
+    scheduler.add_job(Weather.send_temperature_change_message, trigger=CronTrigger(hour='8-22', minute="*/30"))
+
+    # проверка на то что не ли ухудшилась погода Описанием (дождь, гроза, облачно)
     scheduler.add_job(Weather.weather_description, trigger=CronTrigger(hour='8-22', minute=7))
-    scheduler.add_job(Weather.send_weather_message, trigger=CronTrigger(hour='8-22', minute=8))
+
+    # Вывод утром погоды
+    scheduler.add_job(Weather.send_weather_message, trigger=CronTrigger(hour=5, minute=0))
 
     # if await Weather.get_temperature_forecast() < CONFIG.CURRENT_TEMPERATURE:
     #
