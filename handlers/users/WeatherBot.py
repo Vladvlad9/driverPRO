@@ -14,6 +14,11 @@ class WeatherBot:
         self.api_key = api_key
         self.current_temperature = CONFIG.CURRENT_TEMPERATURE
 
+    def get_timezone(self):
+        import datetime
+        get_timeZone = datetime.timezone.utc
+        return get_timeZone
+
     async def get_temperature_forecast(self):
         response = requests.get(
             f"https://api.openweathermap.org/data/2.5/weather?q=minsk&appid={self.api_key}&units=metric"
