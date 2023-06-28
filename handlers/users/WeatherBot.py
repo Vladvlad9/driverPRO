@@ -128,13 +128,13 @@ class WeatherBot:
         users = await CRUDUser.get_all()
         cur_temp = CONFIG.CURRENT_TEMPERATURE
 
-        if cur_temp < await self.get_temperature_forecast():
+        if cur_temp > int(await self.get_temperature_forecast()):
             text = f"{datetime.now(pytz.timezone('Europe/Minsk')).strftime('%Y-%m-%d %H:%M')}\n" \
                    f"Погода немного ухудшилась\n" \
-                   f"{round(cur_temp)}°C"
+                   f"{int(await self.get_temperature_forecast())}°C"
 
             tasks = []
-            CONFIG.CURRENT_TEMPERATURE = await self.get_temperature_forecast()
+            CONFIG.CURRENT_TEMPERATURE = int(await self.get_temperature_forecast())
             try:
                 for user in users:
                     tasks.append(bot.send_message(chat_id=user.user_id,
@@ -148,18 +148,19 @@ class WeatherBot:
                 await bot.send_message(text=f"Ошибка при отправке конкретной температуре (temperature_change)\n {e}",
                                        chat_id=381252111)
         else:
-            CONFIG.CURRENT_TEMPERATURE = await self.get_temperature_forecast()
+            CONFIG.CURRENT_TEMPERATURE = int(await self.get_temperature_forecast())
+        print(str(CONFIG.CURRENT_TEMPERATURE))
 
     async def weather_description(self):
         text_description = ""
         users = await CRUDUser.get_all()
 
         get_weather_description = self.format_weather_description(await self.get_weather_description())
-        if get_weather_description == "Rain" or get_weather_description == "Drizzle":
+        if "Дождь" in get_weather_description:
             text_description = "Скоро будет <i>Дождь</i>"
-        elif get_weather_description == "Clouds":
-            text_description = "Скоро будет <i>Облочно</i>"
-        elif get_weather_description == "Thunderstorm":
+        elif "Облачно" in get_weather_description:
+            text_description = "Скоро будет <i>Облачно</i>"
+        elif "Гроза" in get_weather_description:
             text_description = "Скоро будет <i>Гроза</i>"
 
         tasks = []
