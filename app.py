@@ -249,21 +249,16 @@ async def on_startup(_):
     scheduler.add_job(Weather.send_temperature_change_message, trigger=CronTrigger(hour='8-22', minute="*/30"))
 
     # проверка на то что не ли ухудшилась погода Описанием (дождь, гроза, облачно)
-    scheduler.add_job(Weather.weather_description, trigger=CronTrigger(hour='8-22', minute=7))
+    scheduler.add_job(Weather.weather_description, trigger=CronTrigger(hour='8-22', minute=0))
 
     # Вывод утром погоды
     scheduler.add_job(Weather.send_weather_message, trigger=CronTrigger(hour=5, minute=0))
 
-    # if await Weather.get_temperature_forecast() < CONFIG.CURRENT_TEMPERATURE:
-    #
-    #     CONFIG.CURRENT_TEMPERATURE = await Weather.get_temperature_forecast()
-    # else:
-    #     CONFIG.CURRENT_TEMPERATURE = await Weather.get_temperature_forecast()
+    # Функция которая будет проверять сколько мероприятий проходит сегодня
+    scheduler.add_job(get_def_scheduler, trigger=CronTrigger(hour=7, minute=0), kwargs={'bot': bot})
 
     if events:
         get_time = await sorted_time(event=events)
-        # Функция которая будет проверять сколько мероприятий проходит сегодня
-        scheduler.add_job(get_def_scheduler, trigger=CronTrigger(hour=7, minute=0), kwargs={'bot': bot})
 
         for h in get_time:
             get_hour = int(h[:-3])
