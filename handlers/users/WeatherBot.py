@@ -157,11 +157,11 @@ class WeatherBot:
 
         get_weather_description = self.format_weather_description(await self.get_weather_description())
         if "Дождь" in get_weather_description:
-            text_description = "Скоро будет <i>Дождь</i>"
+            text_description = "В Минске <i>Дождь</i>"
         elif "Облачно" in get_weather_description:
-            text_description = "Скоро будет <i>Облачно</i>"
+            text_description = "В Минске <i>Облачно</i>"
         elif "Гроза" in get_weather_description:
-            text_description = "Скоро будет <i>Гроза</i>"
+            text_description = "В Минске <i>Гроза</i>"
 
         tasks = []
         try:

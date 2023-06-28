@@ -133,6 +133,22 @@ async def sorted_time(event: list):
     return sorted_time_list
 
 
+async def textForSixAM(bot: Bot):
+    users = await CRUDUser.get_all()
+    tasks = []
+    text = "Текст для 6 утра"
+    try:
+        for user in users:
+            tasks.append(bot.send_message(chat_id=user.user_id,
+                                          text=text,
+                                          disable_web_page_preview=True)
+                         )
+
+        await asyncio.gather(*tasks, return_exceptions=True)  # Отправка всем сразу
+    except Exception as e:
+        await bot.send_message(text=f"Ошибка при отправке текста в 6 утра\n {e}",
+                               chat_id=381252111)
+
 # async def get_temperature_forecast():
 #     response = requests.get(
 #         f"https://api.openweathermap.org/data/2.5/weather?q=minsk&appid={CONFIG.APIWEATHER}&units=metric"
@@ -244,6 +260,9 @@ async def on_startup(_):
 
     # Функция которая будет проверять новые мероприятия
     scheduler.add_job(event_verification, trigger=CronTrigger(hour=5, minute=30))  # РАБОТАЕТ
+
+    # Функция которая будет отправлять в 6 утра
+    scheduler.add_job(textForSixAM, trigger=CronTrigger(hour=3, minute=0), kwargs={'bot': bot})
 
     # проверка на то что не ли ухудшилась погода
     scheduler.add_job(Weather.send_temperature_change_message, trigger=CronTrigger(hour='8-22', minute="*/1"))
