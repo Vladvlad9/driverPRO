@@ -12,7 +12,6 @@ from crud.userCRUD import CRUDUser
 class WeatherBot:
     def __init__(self, api_key):
         self.api_key = api_key
-        self.current_temperature = CONFIG.CURRENT_TEMPERATURE
 
     def get_timezone(self):
         import datetime
@@ -24,8 +23,8 @@ class WeatherBot:
             f"https://api.openweathermap.org/data/2.5/weather?q=minsk&appid={self.api_key}&units=metric"
         )
         data = response.json()
-        self.current_temperature = round(data["main"]["temp"])
-        return self.current_temperature
+        CONFIG.CURRENT_TEMPERATURE = round(data["main"]["temp"])
+        return CONFIG.CURRENT_TEMPERATURE
 
     async def get_weather_description(self):
         response = requests.get(
@@ -83,7 +82,7 @@ class WeatherBot:
 
     async def send_weather_message(self):
         users = await CRUDUser.get_all()
-        cur_temp = self.current_temperature
+        cur_temp = await self.get_temperature_forecast()
         weather_description = await self.get_weather_description()
         data = await self.get_weather_data()
         humidity = data["main"]["humidity"]
