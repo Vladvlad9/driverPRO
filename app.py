@@ -283,7 +283,7 @@ async def on_startup(_):
     scheduler.add_job(textForSixAM, trigger=CronTrigger(hour=3, minute=0), kwargs={'bot': bot})
 
     # проверка на то что не ли ухудшилась погода
-    scheduler.add_job(Weather.send_temperature_change_message, trigger=CronTrigger(hour='8-22', minute=0))
+    #scheduler.add_job(Weather.send_temperature_change_message, trigger=CronTrigger(hour='8-22', minute=0))
 
     # проверка на то что не ли ухудшилась погода Описанием (дождь, гроза, облачно)
     scheduler.add_job(Weather.weather_description, trigger=CronTrigger(hour='8-22/3'))
