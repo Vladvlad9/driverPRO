@@ -1,5 +1,6 @@
 import asyncio
 import math
+from pyowm import OWM
 from datetime import datetime
 
 import pytz
@@ -249,6 +250,23 @@ async def get_timezone():
     return get_timeZone
 
 
+async def check_weather():
+    owm = OWM(CONFIG.APIWEATHER)
+
+    # Получение текущей погоды для города Минск
+    mgr = owm.weather_manager()
+    observation = mgr.weather_at_place('Минск')
+    weather = observation.weather
+
+    # Получение времени
+    current_time = weather.reference_time(timeformat='iso')
+
+    # Вывод данных о погоде
+    print(f"Дата и время: {current_time}")
+    print(f"Температура: {weather.temperature('celsius')['temp']}°C")
+    print(f"Погодные условия: {weather.status}")
+
+
 async def on_startup(_):
     Weather = WeatherBot(CONFIG.APIWEATHER)
 
@@ -265,7 +283,7 @@ async def on_startup(_):
     scheduler.add_job(textForSixAM, trigger=CronTrigger(hour=3, minute=0), kwargs={'bot': bot})
 
     # проверка на то что не ли ухудшилась погода
-    scheduler.add_job(Weather.send_temperature_change_message, trigger=CronTrigger(hour='8-22', minute="*/30"))
+    scheduler.add_job(Weather.send_temperature_change_message, trigger=CronTrigger(hour='8-22/3'))
 
     # проверка на то что не ли ухудшилась погода Описанием (дождь, гроза, облачно)
     scheduler.add_job(Weather.weather_description, trigger=CronTrigger(hour='8-22', minute=0))
