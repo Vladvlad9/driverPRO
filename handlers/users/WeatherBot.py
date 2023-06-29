@@ -129,7 +129,7 @@ class WeatherBot:
 
         if cur_temp > int(await self.get_temperature_forecast()):
             text = f"{datetime.now(pytz.timezone('Europe/Minsk')).strftime('%Y-%m-%d %H:%M')}\n" \
-                   f"Погода немного ухудшилась\n" \
+                   f"Температура в Минске " \
                    f"{int(await self.get_temperature_forecast())}°C"
 
             tasks = []
