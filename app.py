@@ -292,7 +292,8 @@ async def on_startup(_):
     scheduler.add_job(Weather.send_weather_message, trigger=CronTrigger(hour=5, minute=0))  # РАБОТАЕТ
 
     # Функция которая будет проверять сколько мероприятий проходит сегодня
-    scheduler.add_job(get_def_scheduler, trigger=CronTrigger(hour=7, minute=0), kwargs={'bot': bot})
+    scheduler.add_job(get_def_scheduler, trigger=CronTrigger(hour=11, minute=30, timezone='Europe/Minsk'),
+                      kwargs={'bot': bot})
 
     if events:
         get_time = await sorted_time(event=events)
